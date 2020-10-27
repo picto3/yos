@@ -1,0 +1,52 @@
+import("yos1.rr")$  // yos1 は sm1.reduction_verbose 関数の定義
+
+/* syz, gb, reduction_verbose の各関数は最後の引数の Weight_vec を省略すると
+   POT 順序となる. 多項式の順序は graded reverse lex で決め打ち(他の選択はできない)
+   なおベクトルは後ろの位置が大きい. たとえば (1,0,0)<(0,1,0)<(0,0,1)
+
+   Weight_vec を与えると TOP 順序となる. まず Weight_vec で比較され,
+   それで大小が決まらないときは, 上記の POT 順序で比較される.
+   下記で Weight_vec を与える例は comment out してある.
+
+ -- sm1.syz, S[0] に F の syzygy
+ -- sm1.gb, Sgb[0] に S[0] のグレブナー基底.
+ --sm1.reduction_verbose の戻り値.
+  [r,c0,[c1,...,cm],g,init,order] ここで g=[g1, ..., gm] であり, 
+  c0 f + c1 g1 + ... + cm gm = r がなりたつ. r/c0 が normal form
+  init は r の initial
+  order は順序をあらわすリスト.
+*/
+
+// 吉田ポスターの例を計算してみる.
+XM_debug=0$
+sm1.auto_reduce(1)$
+
+F=[x*y-1,x^2+y^2-4]$
+//Weight_vec=[[x,10,y,1]]$ 
+printf("\n\nsyz----\n")$
+//S=sm1.syz([F,[x,y],Weight_vec]);
+S=sm1.syz([F,[x,y]]);
+//Sgb=sm1.gb([S[0],[x,y],Weight_vec]);
+Sgb=sm1.gb([S[0],[x,y]]);
+R0=[x+y,x^2*y+x];
+P=R0[0]*F[0]+R0[1]*F[1];
+//R=sm1.reduction_verbose([R0,Sgb[0],[x,y],Weight_vec]);
+R=sm1.reduction_verbose([R0,Sgb[0],[x,y]]);
+printf("\nMinimal representation=%a\n",R[0])$
+printf("The initial of minimal rep=%a\n",R[4])$
+printf("Order=%a\n",R[5][1][1])$
+
+/*
+  参考: R[5][1][1] の出力の見方は少々ややこしい.
+  [order,[[e0,1],                         // POT
+          [x,1,y,1,hh,1,ee0,1,dx,1,dy,1], // graded
+          [dy,-1],[dx,-1],[ee0,-1],[hh,-1],[y,-1],[h,1]]] // reverse lex
+  注意:
+  ベクトルの成分の index は内部では e0 の冪で表現されている.
+  たとえば (1,0,0) <--> e0^0, (0,1,0) <--> e0^1, (0,0,1)<--> e0^2
+  sm1 は微分作用素環用のシステムであるため, dx, dy, hh, h 
+  など宣言してない変数がある.
+*/
+
+
+end$
